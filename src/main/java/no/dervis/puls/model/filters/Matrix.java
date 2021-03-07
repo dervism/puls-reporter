@@ -1,5 +1,6 @@
 package no.dervis.puls.model.filters;
 
+import no.dervis.puls.model.survey.Pair;
 import no.dervis.puls.model.survey.PulseSurvey;
 import no.dervis.puls.model.survey.Respondent;
 
@@ -39,7 +40,7 @@ public class Matrix {
 
         map.forEach((left, pairs) -> {
             StringJoiner sj = new StringJoiner(",");
-            sj.add(Filters.byLetter(pulseSurvey.getQuestions(), left).question() + " ");
+            buffer.append(Filters.byLetter(pulseSurvey.getQuestions(), left).question()).append("#");
             pairs.forEach(pair -> {
                 switch (left.equalsIgnoreCase(pair.right()) ? 0 : 1) {
                     case 0 -> sj.add("0");
@@ -94,17 +95,5 @@ public class Matrix {
 
     private static Predicate<Respondent> makePredicate3(final String n, final int k) {
         return r -> r.intValue(n) == k-2 || r.intValue(n) == k-1 || r.intValue(n) == k;
-    }
-
-    private static record Pair<LEFT, RIGHT>(LEFT left, RIGHT right) {
-        public static Pair<String, String> of(String left, String right) {
-            return new Pair<>(left, right);
-        }
-        public static Pair<String, Integer> of(String left, Integer right) {
-            return new Pair<>(left, right);
-        }
-        public static Pair<Integer, Integer> of(Integer left, Integer right) {
-            return new Pair<>(left, right);
-        }
     }
 }

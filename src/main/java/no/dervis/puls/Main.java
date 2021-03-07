@@ -2,10 +2,9 @@ package no.dervis.puls;
 
 import no.dervis.puls.excel.PulsImporter;
 import no.dervis.puls.model.filters.Matrix;
+import no.dervis.puls.report.Console;
 
 import java.nio.file.Paths;
-
-import static java.lang.String.format;
 
 public class Main {
     public static void main(String[] args) {
@@ -14,7 +13,10 @@ public class Main {
                         .toAbsolutePath().toString());
 
         printImportResult(surveyMap);
-        testMatrix(surveyMap);
+        //testMatrix(surveyMap);
+
+        Console console = new Console(surveyMap.get("Felles"));
+        console.pretty(true).printMatrix();
     }
 
     private static void testMatrix(java.util.Map<String, no.dervis.puls.model.survey.PulseSurvey> surveyMap) {
