@@ -45,6 +45,7 @@ public class Matrix {
             StringJoiner sj = new StringJoiner(",");
             int filteredCountOfColumn = dr
                     .byLetter(left)
+                    .orElseThrow(() -> new IllegalArgumentException("Could not found column " + left))
                     .countInt(selectPredicate(firstRating));
 
             buffer
