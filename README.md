@@ -8,7 +8,6 @@ Imports a Microsoft Forms survey results export, and all other types of Excel wo
 - [ ] Extended console report
 - [ ] Excel export
 - [ ] DSL support
-- [ ] Matrix percentage comparison (_x_ % of people who voted _y_, also voted _k_)
   
 ### Features implemented
 - [x] Column filters (sum, min, max, average)
@@ -16,6 +15,7 @@ Imports a Microsoft Forms survey results export, and all other types of Excel wo
 - [x] Multi column filters
 - [x] Matrix comparison
 - [x] Basic Matrix console report
+- [x] Percentage comparison (_x_ people who voted _y_, also voted _k_)
 
 
 ### Development

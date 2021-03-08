@@ -1,7 +1,5 @@
 package no.dervis.puls.model.survey;
 
-import no.dervis.puls.model.filters.Filters;
-
 import java.time.LocalDateTime;
 import java.util.Map;
 

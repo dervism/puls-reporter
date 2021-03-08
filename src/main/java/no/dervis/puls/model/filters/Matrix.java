@@ -3,6 +3,7 @@ package no.dervis.puls.model.filters;
 import no.dervis.puls.model.survey.Pair;
 import no.dervis.puls.model.survey.PulseSurvey;
 import no.dervis.puls.model.survey.Respondent;
+import no.dervis.puls.model.survey.Responses.PulseRatedResponse;
 
 import java.util.*;
 import java.util.function.Function;
@@ -11,6 +12,7 @@ import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Stream.of;
+import static no.dervis.puls.model.filters.Filters.byLetter;
 
 public class Matrix {
 
@@ -37,10 +39,19 @@ public class Matrix {
 
     private static String makeMatrix(PulseSurvey pulseSurvey, int firstRating, int secondRating, LinkedHashMap<String, List<Pair<String, String>>> map) {
         StringBuilder buffer = new StringBuilder();
+        DataRegion dr = DataRegion.create(pulseSurvey);
 
         map.forEach((left, pairs) -> {
             StringJoiner sj = new StringJoiner(",");
-            buffer.append(Filters.byLetter(pulseSurvey.getQuestions(), left).question()).append("#");
+            int filteredCountOfColumn = dr
+                    .byLetter(left)
+                    .countInt(selectPredicate(firstRating));
+
+            buffer
+                    .append(filteredCountOfColumn).append("#")
+                    .append(byLetter(pulseSurvey.getQuestions(), left).question())
+                    .append("#");
+
             pairs.forEach(pair -> {
                 switch (left.equalsIgnoreCase(pair.right()) ? 0 : 1) {
                     case 0 -> sj.add("0");
@@ -85,6 +96,14 @@ public class Matrix {
         };
     }
 
+    private static Predicate<PulseRatedResponse> selectPredicate(int value) {
+        return switch (value) {
+            case 2, 7 -> makePredicate(value);
+            case 3, 5 -> makePredicate3(value);
+            default -> throw new IllegalArgumentException();
+        };
+    }
+
     private static Function<Pair<String, Integer>, Predicate<Respondent>> makeFPredicate() {
         return g -> r -> r.intValue(g.left()) == g.right()-1;
     }
@@ -93,7 +112,15 @@ public class Matrix {
         return r -> r.intValue(n) == k-1 || r.intValue(n) == k;
     }
 
+    private static Predicate<PulseRatedResponse> makePredicate(final int k) {
+        return r -> r.response() == k-1 || r.response() == k;
+    }
+
     private static Predicate<Respondent> makePredicate3(final String n, final int k) {
         return r -> r.intValue(n) == k-2 || r.intValue(n) == k-1 || r.intValue(n) == k;
+    }
+
+    private static Predicate<PulseRatedResponse> makePredicate3(final int k) {
+        return r -> r.response() == k-2 || r.response() == k-1 || r.response() == k;
     }
 }
