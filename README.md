@@ -8,14 +8,15 @@ Imports a Microsoft Forms survey results export, and all other types of Excel wo
 - [ ] Extended console report
 - [ ] Excel export
 - [ ] DSL support
-  
+- [ ] Correlation matrix with coefficient calculation
+
 ### Features implemented
 - [x] Column filters (sum, min, max, average)
 - [x] Row filters
 - [x] Multi column filters
-- [x] Matrix comparison
-- [x] Basic Matrix console report
-- [x] Percentage comparison (_x_ people who voted _y_, also voted _k_)
+- [x] Basic correlation matrix comparison
+- [x] Basic matrix console report
+- [x] Multiple categories of percentage based matrix comparison (_x_ people who voted _y_, also voted _k_)
 
 
 ### Development
