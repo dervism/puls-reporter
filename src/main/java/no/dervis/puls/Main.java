@@ -13,7 +13,7 @@ public class Main {
 
         printImportResult(surveyMap);
 
-        MatrixConsolePrinter console = new MatrixConsolePrinter(surveyMap.get("Data"));
+        MatrixConsolePrinter console = new MatrixConsolePrinter(surveyMap.get("Utvikling"));
         console.pretty(true).printDefault();
     }
 

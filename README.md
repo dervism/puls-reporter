@@ -14,9 +14,9 @@ Imports a Microsoft Forms survey results export, and all other types of Excel wo
 - [x] Column filters (sum, min, max, average)
 - [x] Row filters
 - [x] Multi column filters
-- [x] Basic correlation matrix comparison
-- [x] Basic matrix console report
-- [x] Multiple categories of percentage based matrix comparison (_x_ people who voted _y_, also voted _k_)
+- [x] Basic matrix console report  
+- [x] Basic matrix comparison tables
+- [x] Multiple categories of percentage based matrix comparison (such as: _x_ people who voted _y_, also voted _k_)
 
 
 ### Development

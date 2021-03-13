@@ -1,6 +1,8 @@
 package no.dervis.puls.model.filters;
 
 import no.dervis.puls.model.survey.Pair;
+import no.dervis.puls.model.survey.Pair.IntPair;
+import no.dervis.puls.model.survey.Pair.StringPair;
 import no.dervis.puls.model.survey.PulseSurvey;
 import no.dervis.puls.model.survey.Respondent;
 import no.dervis.puls.model.survey.Responses.PulseRatedResponse;
@@ -16,6 +18,8 @@ import static no.dervis.puls.model.filters.Filters.byLetter;
 
 public class Matrix {
 
+    private final static String[] letters = {"E", "F", "G", "H", "I"};
+
     public static PulseSurvey multiColumnFilter(PulseSurvey pulseSurvey, List<Pair<String, Integer>> pairs) {
         return pulseSurvey.filter(new LinkedList<>(
                 pairs.stream()
@@ -24,39 +28,34 @@ public class Matrix {
         ));
     }
 
-    public static String matrix(PulseSurvey pulseSurvey, final int firstRating, final int secondRating) {
-        String[] letters = {"E", "F", "G", "H", "I"};
-
-        var map = new LinkedHashMap<String, List<Pair<String, String>>>();
+    public static String matrix(PulseSurvey pulseSurvey, IntPair ratings) {
+        var map = new LinkedHashMap<String, List<StringPair>>();
         for (String left : letters) {
             for (String right : letters)
-                map.merge(left, List.of(Pair.of(left, right)),
+                map.merge(left, List.of(StringPair.of(left, right)),
                         (k, v) -> of(k, v).flatMap(Collection::stream).collect(toList()));
         }
 
-        return makeMatrix(pulseSurvey, firstRating, secondRating, map);
+        return makeMatrix(pulseSurvey, ratings, map);
     }
 
-    private static String makeMatrix(PulseSurvey pulseSurvey, int firstRating, int secondRating, LinkedHashMap<String, List<Pair<String, String>>> map) {
-        StringBuilder buffer = new StringBuilder();
-        DataRegion dr = DataRegion.create(pulseSurvey);
+    private static String makeMatrix(PulseSurvey pulseSurvey, IntPair ratings, LinkedHashMap<String, List<StringPair>> map) {
+        var buffer = new StringBuilder();
+        var dataRegion = DataRegion.create(pulseSurvey);
 
-        map.forEach((left, pairs) -> {
-            StringJoiner sj = new StringJoiner(",");
-            int filteredCountOfColumn = dr
-                    .byLetter(left)
-                    .orElseThrow(() -> new IllegalArgumentException("Could not found column " + left))
-                    .countInt(selectPredicate(firstRating));
+        map.forEach((column, pairs) -> {
+            var sj = new StringJoiner(",");
 
             buffer
-                    .append(filteredCountOfColumn).append("#")
-                    .append(byLetter(pulseSurvey.getQuestions(), left).question())
+                    .append(columnFilter(dataRegion, ratings.left(), column))
+                    .append("#")
+                    .append(byLetter(pulseSurvey.getQuestions(), column).question())
                     .append("#");
 
             pairs.forEach(pair -> {
-                switch (left.equalsIgnoreCase(pair.right()) ? 0 : 1) {
+                switch (column.equalsIgnoreCase(pair.right()) ? 0 : 1) {
                     case 0 -> sj.add("0");
-                    case 1 -> sj.add(filterAndCount(pulseSurvey, firstRating, secondRating, pair) + "");
+                    case 1 -> sj.add(rowFilter(pulseSurvey, ratings, pair) + "");
                 }
             });
             buffer.append(sj.toString()).append(System.lineSeparator());
@@ -65,11 +64,18 @@ public class Matrix {
         return buffer.toString();
     }
 
-    private static int filterAndCount(PulseSurvey pulseSurvey, int firstRating, int secondRating, Pair<String, String> pair) {
+    private static int columnFilter(DataRegion dataRegion, int rating, String column) {
+        return dataRegion
+                .byLetter(column)
+                .orElseThrow(() -> new IllegalArgumentException("Could not find column " + column))
+                .countInt(selectPredicate(rating));
+    }
+
+    private static int rowFilter(PulseSurvey pulseSurvey, IntPair ratings, StringPair columns) {
         return pulseSurvey.filter(new LinkedList<>(
                 List.of(
-                        selectPredicate(pair.left(), firstRating),
-                        selectPredicate(pair.right(), secondRating))
+                        selectPredicate(columns.left(), ratings.left()),
+                        selectPredicate(columns.right(), ratings.right()))
         )).size();
     }
 

@@ -1,9 +1,8 @@
 package no.dervis.puls.report;
 
-import no.dervis.puls.model.survey.Pair;
+import no.dervis.puls.model.survey.Pair.IntPair;
 import no.dervis.puls.model.survey.PulseSurvey;
 import no.dervis.puls.model.survey.PulseTextQuestion;
-import no.dervis.puls.model.survey.Question;
 
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -23,12 +22,10 @@ public class MatrixConsolePrinter implements ConsolePrinter {
     private final PulseSurvey pulse;
 
     private int truncation;
-
     private int skipHeaders;
-
     private boolean prettyPrint;
 
-    private List<Pair<Integer, Integer>> pairs;
+    private List<IntPair> pairs;
     private List<String> descriptions;
     private List<String> aliases;
 
@@ -51,7 +48,12 @@ public class MatrixConsolePrinter implements ConsolePrinter {
         return this;
     }
 
-    public MatrixConsolePrinter withPairs(List<Pair<Integer, Integer>> pairs) {
+    public MatrixConsolePrinter fromColumn(String col) {
+
+        return this;
+    }
+
+    public MatrixConsolePrinter withPairs(List<IntPair> pairs) {
         this.pairs = pairs;
         return this;
     }
@@ -79,11 +81,11 @@ public class MatrixConsolePrinter implements ConsolePrinter {
     public void printDefault() {
         this.withPairs(
                 List.of(
-                        Pair.of(7, 7), // those who rated high, who also rated others high
-                        Pair.of(3, 3), // those who rated low, who also rated others low
-                        Pair.of(7, 3), // those who rated high, who also rated others low
-                        Pair.of(3, 7), // those who rated low, who also rated others high
-                        Pair.of(2, 2)  // those who rated very low, who also rated others very low
+                        IntPair.of(7, 7), // those who rated high, who also rated others high
+                        IntPair.of(3, 3), // those who rated low, who also rated others low
+                        IntPair.of(7, 3), // those who rated high, who also rated others low
+                        IntPair.of(3, 7), // those who rated low, who also rated others high
+                        IntPair.of(2, 2)  // those who rated very low, who also rated others very low
                 )
         ).withDescriptions(
                 List.of(
@@ -108,15 +110,15 @@ public class MatrixConsolePrinter implements ConsolePrinter {
 
     @Override
     public void print() {
-        final StringBuilder sb = new StringBuilder();
+        var sb = new StringBuilder();
 
         if (!descriptions.isEmpty() && pairs.size() != descriptions.size())
             throw new IllegalArgumentException("Pairs and Descriptions have different length.");
 
-        LinkedList<String> descriptionsList = new LinkedList<>(descriptions);
+        var descriptionsList = new LinkedList<>(descriptions);
 
-        pairs.forEach(pair -> {
-            LinkedList<String> aliasList = new LinkedList<>(aliases);
+        pairs.forEach(ratingPair -> {
+            var aliasList = new LinkedList<>(aliases);
 
             if (!descriptionsList.isEmpty()) {
                 sb.append(descriptionsList.removeFirst());
@@ -124,7 +126,7 @@ public class MatrixConsolePrinter implements ConsolePrinter {
             }
 
             // headers
-            final LinkedList<Question> questions = new LinkedList<>(pulse.getQuestions());
+            var questions = new LinkedList<>(pulse.getQuestions());
             questions.add(skipHeaders, new PulseTextQuestion("Questions"));
             questions.add(skipHeaders+1, new PulseTextQuestion("Count"));
 
@@ -142,43 +144,45 @@ public class MatrixConsolePrinter implements ConsolePrinter {
 
             sb.append(lineSeparator());
             sb.append(
-                    extracted(matrix(pulse, pair.left(), pair.right()),
-                            new LinkedList<>(aliases.subList(2, aliases.size())))
+                    build(matrix(pulse, ratingPair), new LinkedList<>(aliases.subList(2, aliases.size())))
             );
         });
 
         System.out.println(sb.toString());
     }
 
-    private String extracted(String matrix, List<String> aliases) {
+    private String build(String matrix, List<String> aliases) {
 
-        StringBuilder sb = new StringBuilder();
-        final String[] lines = matrix.split(lineSeparator());
-
-        LinkedList<String> aliasList = new LinkedList<>(aliases);
+        var builder = new StringBuilder();
+        var lines = matrix.split(lineSeparator());
+        var aliasList = new LinkedList<>(aliases);
 
         Arrays.stream(lines).forEach(line ->  {
-            final String[] split = line.split("#");
-            final String countPrHeader = split[0];
-            final String columnHeader = truncate(split[1]);
-            final String ratings = split[2];
+            var split = line.split("#");
+            var countPrHeader = split[0];
+            var columnHeader = headerName(aliasList, split[1]);
+            var ratings = split[2];
 
-            sb.append(!aliasList.isEmpty() ? truncateOrPadding(aliasList.removeFirst()) : columnHeader)
-                    .append(ratingsToTabs(countPrHeader))
-                    .append(ratingsToTabs(ratingsToPercentage(ratings, parseInt(countPrHeader))))
-                    .append(lineSeparator());
+            builder.append(columnHeader)
+              .append(ratingsToTabs(countPrHeader))
+              .append(ratingsToTabs(ratingsToPercentage(ratings, parseInt(countPrHeader))))
+              .append(lineSeparator());
         });
 
-        sb.append(lineSeparator());
-        sb.append(lineSeparator());
+        builder.append(lineSeparator());
+        builder.append(lineSeparator());
 
-        return sb.toString();
+        return builder.toString();
+    }
+
+    private String headerName(LinkedList<String> aliasList, String header) {
+        return !aliasList.isEmpty() ? truncateOrPadding(aliasList.removeFirst()) : truncate(header);
     }
 
     private String ratingsToTabs(String ratings) {
         return Arrays
                 .stream(ratings.split(","))
-                .reduce("", (s, s2) -> s + "\t" + rightPadding(s2, truncation));
+                .reduce("", (left, right) -> left + "\t" + rightPadding(right, truncation));
     }
 
     private String ratingsToPercentage(String ratings, int count) {
