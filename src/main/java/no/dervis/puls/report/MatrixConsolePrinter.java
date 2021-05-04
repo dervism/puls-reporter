@@ -3,6 +3,7 @@ package no.dervis.puls.report;
 import no.dervis.puls.model.survey.Pair.IntPair;
 import no.dervis.puls.model.survey.PulseSurvey;
 import no.dervis.puls.model.survey.PulseTextQuestion;
+import no.dervis.puls.model.survey.Question;
 
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -17,7 +18,7 @@ import static no.dervis.puls.model.filters.Matrix.matrix;
 public class MatrixConsolePrinter implements ConsolePrinter {
 
     private static final int DEFAULT_TRUNCATION_LENGTH = 20;
-    private static final int DEFAULT_SKIP_HEADERS = 4;
+    private static final int DEFAULT_SKIP_HEADERS = 3;
 
     private final PulseSurvey pulse;
 
@@ -49,6 +50,11 @@ public class MatrixConsolePrinter implements ConsolePrinter {
     }
 
     public MatrixConsolePrinter fromColumn(String col) {
+
+        return this;
+    }
+
+    public MatrixConsolePrinter toColumn(String col) {
 
         return this;
     }
@@ -105,7 +111,8 @@ public class MatrixConsolePrinter implements ConsolePrinter {
                         "Tilhørighet",
                         "Arbeidsmengde"
                 )
-        ).print();
+        ).skipHeaders(4)
+                .print();
     }
 
     @Override
@@ -113,7 +120,7 @@ public class MatrixConsolePrinter implements ConsolePrinter {
         var sb = new StringBuilder();
 
         if (!descriptions.isEmpty() && pairs.size() != descriptions.size())
-            throw new IllegalArgumentException("Pairs and Descriptions have different length.");
+            throw new IllegalArgumentException("Rating pairs and descriptions have different length.");
 
         var descriptionsList = new LinkedList<>(descriptions);
 
@@ -130,16 +137,12 @@ public class MatrixConsolePrinter implements ConsolePrinter {
             questions.add(skipHeaders, new PulseTextQuestion("Questions"));
             questions.add(skipHeaders+1, new PulseTextQuestion("Count"));
 
-            questions.stream()
-                    .skip(skipHeaders+1)
-                    .forEach(question -> {
-                                String truncate = truncate(
-                                        !aliasList.isEmpty() ? aliasList.removeFirst() : question.question()
-                                );
-                                sb.append(prettyPrint ?
-                                        rightPadding(truncate, truncation) : truncate
-                                ).append("\t");
-                    }
+            var stream = questions.stream();
+            var questionStream = skipHeaders > 0 ? stream.skip(skipHeaders + 1) : stream;
+
+            questionStream
+                    .forEach(question -> sb.append(
+                            paddingWithTruncation(getAlias(aliasList, question))).append("\t")
                     );
 
             sb.append(lineSeparator());
@@ -151,8 +154,11 @@ public class MatrixConsolePrinter implements ConsolePrinter {
         System.out.println(sb.toString());
     }
 
-    private String build(String matrix, List<String> aliases) {
+    private static String getAlias(LinkedList<String> aliasList, Question question) {
+        return !aliasList.isEmpty() ? aliasList.removeFirst() : question.question();
+    }
 
+    private String build(String matrix, List<String> aliases) {
         var builder = new StringBuilder();
         var lines = matrix.split(lineSeparator());
         var aliasList = new LinkedList<>(aliases);
@@ -160,12 +166,12 @@ public class MatrixConsolePrinter implements ConsolePrinter {
         Arrays.stream(lines).forEach(line ->  {
             var split = line.split("#");
             var countPrHeader = split[0];
-            var columnHeader = headerName(aliasList, split[1]);
+            var columnHeader = paddingWithTruncation(headerName(aliasList, split[1]));
             var ratings = split[2];
 
             builder.append(columnHeader)
-              .append(ratingsToTabs(countPrHeader))
-              .append(ratingsToTabs(ratingsToPercentage(ratings, parseInt(countPrHeader))))
+              .append(tabulate(countPrHeader))
+              .append(tabulate(ratingsToPercentage(ratings, parseInt(countPrHeader))))
               .append(lineSeparator());
         });
 
@@ -175,46 +181,38 @@ public class MatrixConsolePrinter implements ConsolePrinter {
         return builder.toString();
     }
 
-    private String headerName(LinkedList<String> aliasList, String header) {
-        return !aliasList.isEmpty() ? truncateOrPadding(aliasList.removeFirst()) : truncate(header);
+    private static String headerName(LinkedList<String> aliasList, String header) {
+        return !aliasList.isEmpty() ? aliasList.removeFirst() : header;
     }
 
-    private String ratingsToTabs(String ratings) {
+    private String tabulate(String ratings) {
         return Arrays
                 .stream(ratings.split(","))
                 .reduce("", (left, right) -> left + "\t" + rightPadding(right, truncation));
     }
 
-    private String ratingsToPercentage(String ratings, int count) {
+    private static String ratingsToPercentage(String ratings, int count) {
         return Arrays
                 .stream(ratings.split(","))
-                .peek(s -> {
-                    if (parseInt(s) > count) throw new IllegalArgumentException();
-                })
+                .map(s -> s.isBlank() ? 0 : parseInt(s))
+                .peek(s -> { if (s > count) throw new IllegalArgumentException(); })
                 .map(s -> percentageOf(s, count))
                 .collect(Collectors.joining(","));
-
     }
 
-    private String percentageOf(String rating, int count) {
-        if (rating.isBlank()) return rating;
-
-        int score = parseInt(rating);
-
-        if (score == 0) return rating;
-
-        double percentage = ((double)score/count)*100;
+    private static String percentageOf(int rating, int count) {
+        if (rating == 0) return "" + 0;
+        double percentage = ((double)rating/count)*100;
         return rating + " (" + format("%.2f", percentage) + "%)";
     }
 
-    private String rightPadding(String string, int padding) {
-        return string.length() < padding ?
-                format("%1$-" + padding + "s", string) : string;
+    private String paddingWithTruncation(String string) {
+        return rightPadding(truncate(string), truncation);
     }
 
-    private String truncateOrPadding(String string) {
-        if (string.length() > truncation) return truncate(string);
-        else return rightPadding(string, truncation);
+    private static String rightPadding(String string, int padding) {
+        return string.length() < padding ?
+                format("%1$-" + padding + "s", string) : string;
     }
 
     private String truncate(String question) {
