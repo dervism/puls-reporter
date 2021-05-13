@@ -15,10 +15,10 @@ import java.util.stream.Collectors;
  *
  * <pre>
  *
- *  var workbook = surveyMap.get("Sheet1")
+ *  var sheet = surveyMap.get("Sheet1")
  *  var s = new LinkedList<Predicate<PulseRatedResponse>>();
  *  s.add(r -> r.score() == 6 || r.score() == 7);
- *  DataRegion dataRegion = DataRegion.create(workbook);
+ *  DataRegion dataRegion = DataRegion.create(sheet);
  *  System.out.println(dataRegion.byLetter("F").countAllInts(s));
  *
  * </pre>
