@@ -1,5 +1,6 @@
 package no.dervis.puls.report;
 
+import no.dervis.puls.model.filters.MatrixModel;
 import no.dervis.puls.model.survey.Pair.IntPair;
 import no.dervis.puls.model.survey.PulseSurvey;
 import no.dervis.puls.model.survey.PulseTextQuestion;
@@ -151,28 +152,22 @@ public class MatrixConsolePrinter implements ConsolePrinter {
             );
         });
 
-        System.out.println(sb.toString());
+        System.out.println(sb);
     }
 
     private static String getAlias(LinkedList<String> aliasList, Question question) {
         return !aliasList.isEmpty() ? aliasList.removeFirst() : question.question();
     }
 
-    private String build(String matrix, List<String> aliases) {
+    private String build(MatrixModel matrix, List<String> aliases) {
         var builder = new StringBuilder();
-        var lines = matrix.split(lineSeparator());
         var aliasList = new LinkedList<>(aliases);
 
-        Arrays.stream(lines).forEach(line ->  {
-            var split = line.split("#");
-            var countPrHeader = split[0];
-            var columnHeader = paddingWithTruncation(headerName(aliasList, split[1]));
-            var ratings = split[2];
-
-            builder.append(columnHeader)
-              .append(tabulate(countPrHeader))
-              .append(tabulate(ratingsToPercentage(ratings, parseInt(countPrHeader))))
-              .append(lineSeparator());
+        matrix.getModelLines().forEach(line -> {
+            builder.append(paddingWithTruncation(headerName(aliasList, line.getQuestion())))
+                    .append(tabulate(line.getColumnFilterCountAsString()))
+                    .append(tabulate(ratingsToPercentage(line.getRatingsList(), line.getColumnFilterCount())))
+                    .append(lineSeparator());
         });
 
         builder.append(lineSeparator());
@@ -191,9 +186,8 @@ public class MatrixConsolePrinter implements ConsolePrinter {
                 .reduce("", (left, right) -> left + "\t" + rightPadding(right, truncation));
     }
 
-    private static String ratingsToPercentage(String ratings, int count) {
-        return Arrays
-                .stream(ratings.split(","))
+    private static String ratingsToPercentage(List<String> ratings, int count) {
+        return ratings.stream()
                 .map(s -> s.isBlank() ? 0 : parseInt(s))
                 .peek(s -> { if (s > count) throw new IllegalArgumentException(); })
                 .map(s -> percentageOf(s, count))

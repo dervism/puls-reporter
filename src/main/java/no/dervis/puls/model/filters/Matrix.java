@@ -7,7 +7,10 @@ import no.dervis.puls.model.survey.PulseSurvey;
 import no.dervis.puls.model.survey.Respondent;
 import no.dervis.puls.model.survey.Responses.PulseRatedResponse;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -28,7 +31,7 @@ public class Matrix {
         ));
     }
 
-    public static String matrix(PulseSurvey pulseSurvey, IntPair ratings) {
+    public static MatrixModel matrix(PulseSurvey pulseSurvey, IntPair ratings) {
         var map = new LinkedHashMap<String, List<StringPair>>();
         for (String left : letters) {
             for (String right : letters)
@@ -39,29 +42,26 @@ public class Matrix {
         return makeMatrix(pulseSurvey, ratings, map);
     }
 
-    private static String makeMatrix(PulseSurvey pulseSurvey, IntPair ratings, LinkedHashMap<String, List<StringPair>> map) {
-        var buffer = new StringBuilder();
+    private static MatrixModel makeMatrix(PulseSurvey pulseSurvey, IntPair ratings, LinkedHashMap<String, List<StringPair>> map) {
         var dataRegion = DataRegion.create(pulseSurvey);
 
+        MatrixModel model = new MatrixModel();
+
         map.forEach((column, pairs) -> {
-            var sj = new StringJoiner(",");
+            List<String> ratingsList = pairs.stream()
+                    .map(pair -> column.equalsIgnoreCase(pair.right()) ? "0" : rowFilter(pulseSurvey, ratings, pair) + "")
+                    .collect(toList());
 
-            buffer
-                    .append(columnFilter(dataRegion, ratings.left(), column))
-                    .append("#")
-                    .append(byLetter(pulseSurvey.getQuestions(), column).question())
-                    .append("#");
+            MatrixModelLine line = new MatrixModelLine(
+                    columnFilter(dataRegion, ratings.left(), column),
+                    byLetter(pulseSurvey.getQuestions(), column).question(),
+                    ratingsList
+            );
 
-            pairs.forEach(pair -> {
-                switch (column.equalsIgnoreCase(pair.right()) ? 0 : 1) {
-                    case 0 -> sj.add("0");
-                    case 1 -> sj.add(rowFilter(pulseSurvey, ratings, pair) + "");
-                }
-            });
-            buffer.append(sj.toString()).append(System.lineSeparator());
+            model.addModelLine(line);
         });
 
-        return buffer.toString();
+        return model;
     }
 
     private static int columnFilter(DataRegion dataRegion, int rating, String column) {
