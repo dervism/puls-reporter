@@ -18,7 +18,7 @@ import static no.dervis.puls.model.filters.Matrix.matrix;
 
 public class MatrixConsolePrinter implements ConsolePrinter {
 
-    private static final int DEFAULT_TRUNCATION_LENGTH = 20;
+    private static final int DEFAULT_TRUNCATION_LENGTH = 40;
     private static final int DEFAULT_SKIP_HEADERS = 3;
 
     private final PulseSurvey pulse;
@@ -47,6 +47,11 @@ public class MatrixConsolePrinter implements ConsolePrinter {
 
     public MatrixConsolePrinter pretty(boolean prettyPrint) {
         this.prettyPrint = prettyPrint;
+        return this;
+    }
+
+    public MatrixConsolePrinter prettyEnabled() {
+        this.prettyPrint = true;
         return this;
     }
 
@@ -88,31 +93,35 @@ public class MatrixConsolePrinter implements ConsolePrinter {
     public void printDefault() {
         this.withPairs(
                 List.of(
-                        IntPair.of(7, 7), // those who rated high, who also rated others high
-                        IntPair.of(3, 3), // those who rated low, who also rated others low
-                        IntPair.of(7, 3), // those who rated high, who also rated others low
-                        IntPair.of(3, 7), // those who rated low, who also rated others high
-                        IntPair.of(2, 2)  // those who rated very low, who also rated others very low
+                        IntPair.of(5, 5), // those who rated high, who also rated others high
+                        IntPair.of(2, 2), // those who rated low, who also rated others low
+                        IntPair.of(5, 2), // those who rated high, who also rated others low
+                        IntPair.of(2, 5), // those who rated low, who also rated others high
+                        IntPair.of(1, 1)  // those who rated very low, who also rated others very low
                 )
         ).withDescriptions(
                 List.of(
-                        "Those who rated high (6 or 7), who also rated others high",
-                        "Those who rated low (3 or less), who also rated others low",
-                        "Those who rated high (6 or 7), who also rated others low",
-                        "Those who rated low (3 or less), who also rated others high",
-                        "Those who rated very low (2 or less), who also rated others very low"
+                        "Those who rated high (4 or 5), who also rated others high",
+                        "Those who rated low (2 or less), who also rated others low",
+                        "Those who rated high (4 or 5), who also rated others low",
+                        "Those who rated low (2 or less), who also rated others high",
+                        "Those who rated very low (1), who also rated others very low"
                 )
         ).withAlias(
                 List.of(
                         "Spørsmål",
                         "Antall",
-                        "Personalleder",
-                        "Læring",
-                        "Motivasjon",
-                        "Tilhørighet",
-                        "Arbeidsmengde"
+                        "Personalleder tilrettelegger",
+                        "Personalleder tilgjengelig",
+                        "Faglig arena - tilrettelegging",
+                        "Kompetansebruk",
+                        "Verdi fagmiljø",
+                        "Læringsklima",
+                        "Meningsytring",
+                        "Teknisk retning kjennskap",
+                        "Enhet"
                 )
-        ).skipHeaders(4)
+        ).skipHeaders(3)
                 .print();
     }
 
@@ -139,7 +148,7 @@ public class MatrixConsolePrinter implements ConsolePrinter {
             questions.add(skipHeaders+1, new PulseTextQuestion("Count"));
 
             var stream = questions.stream();
-            var questionStream = skipHeaders > 0 ? stream.skip(skipHeaders + 1) : stream;
+            var questionStream = skipHeaders > 0 ? stream.skip(skipHeaders) : stream;
 
             questionStream
                     .forEach(question -> sb.append(
