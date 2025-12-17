@@ -20,4 +20,4 @@ Imports a Microsoft Forms survey results export, and all other types of Excel wo
 
 
 ### Development
-Java 19 with preview features enabled.
+Java 25 with preview features enabled.
