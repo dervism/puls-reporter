@@ -42,7 +42,7 @@ public record Respondent(
             return (T) response;
         }
         throw new RuntimeException("Illegal type. Expected " + clazz.getSimpleName()
-                + ", was: " + response.getClass().getSimpleName());
+                + ", was: " + response.getClass().getSimpleName() + " for question: " + question.question());
     }
 
 }
