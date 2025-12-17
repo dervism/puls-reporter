@@ -36,7 +36,7 @@ public class PulsImporter {
                 PulseSurvey pulseSurvey = new PulseSurvey();
                 Iterator<Row> rowIterator = sheet.rowIterator();
 
-                List<Question> questions = getHeaders(rowIterator);
+                List<Question> questions = getHeaders(workbook, rowIterator);
 
                 pulseSurvey.setQuestions(questions);
                 List<Respondent> respondents = new LinkedList<>();
@@ -83,11 +83,16 @@ public class PulsImporter {
         return null;
     }
 
-    private List<Question> getHeaders(Iterator<Row> rowIterator) {
+    private List<Question> getHeaders(Workbook workbook, Iterator<Row> rowIterator) {
+        DataFormatter formatter = new DataFormatter(Locale.ROOT);
+        FormulaEvaluator evaluator = workbook.getCreationHelper().createFormulaEvaluator();
+
         Row firstRow = rowIterator.next();
         List<Question> questions = new LinkedList<>();
+
         for (Cell cell : firstRow) {
-            questions.add(new PulseTextQuestion(cell.getStringCellValue()));
+            String header = formatter.formatCellValue(cell, evaluator).trim();
+            questions.add(new PulseTextQuestion(header));
         }
         return questions;
     }
