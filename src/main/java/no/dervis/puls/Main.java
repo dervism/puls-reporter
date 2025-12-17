@@ -8,13 +8,13 @@ import java.nio.file.Paths;
 public class Main {
     public static void main(String[] args) {
         var surveyMap = new PulsImporter()
-                .importExcel(Paths.get("data","data.xlsx")
+                .importExcel(Paths.get("data","data25.xlsx")
                         .toAbsolutePath().toString());
 
         printImportResult(surveyMap);
 
-        MatrixConsolePrinter console = new MatrixConsolePrinter(surveyMap.get("Utvikling"));
-        console.pretty(true).printDefault();
+        MatrixConsolePrinter console = new MatrixConsolePrinter(surveyMap.get("Sheet1"));
+        console.prettyEnabled().printDefault();
     }
 
     private static void printImportResult(java.util.Map<String, no.dervis.puls.model.survey.PulseSurvey> surveyMap) {
