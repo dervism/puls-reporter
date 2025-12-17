@@ -1,7 +1,6 @@
 package no.dervis.puls.model.survey;
 
 import no.dervis.puls.model.filters.DataRegion;
-import no.dervis.puls.model.survey.PulseRatedQuestion;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -19,7 +18,7 @@ class PulseSurveyTest {
                 new PulseRatedQuestion("Q4")
         ));
 
-        assertEquals(pulseSurvey.data().keySet().size(), 4);
+        assertEquals(4, pulseSurvey.data().size());
 
         pulseSurvey.data().keySet().forEach(question -> {
             var responses = pulseSurvey.data().get(question);
