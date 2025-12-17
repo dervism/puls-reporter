@@ -8,7 +8,7 @@ Imports a Microsoft Forms survey results export, and all other types of Excel wo
 - [ ] Extended console report
 - [ ] Excel export
 - [ ] DSL support
-- [ ] Correlation matrix with coefficient calculation
+- [ ] Correlation matrix with correlation coefficients 
 
 ### Features implemented
 - [x] Column filters (sum, min, max, average)
