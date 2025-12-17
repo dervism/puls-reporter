@@ -1,7 +1,9 @@
 package no.dervis.puls.cli;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -13,6 +15,15 @@ public class ApplicationParams {
 
     char columnFrom;
     char columnTo;
+
+    public Map<String, String> handleParams(String args[]) {
+        return Arrays.stream(args)
+                .peek(s -> {
+                    if (!s.contains("=")) throw new IllegalArgumentException("Illegal argument, missing '=': " + s);
+                })
+                .map(s -> s.split("="))
+                .collect(Collectors.toMap(s -> s[0], s -> s[1]));
+    }
 
     /**
      * Takes in a range of chars from and to, and returns
