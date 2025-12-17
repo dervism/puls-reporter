@@ -21,7 +21,7 @@ import static no.dervis.puls.model.filters.Filters.byLetter;
 
 public class Matrix {
 
-    private final static String[] letters = {"E", "F", "G", "H", "I"};
+    private final static String[] letters = {"D", "E", "F", "G", "H", "I", "J", "K", "L"};
 
     public static PulseSurvey multiColumnFilter(PulseSurvey pulseSurvey, List<Pair<String, Integer>> pairs) {
         return pulseSurvey.filter(new LinkedList<>(
@@ -97,16 +97,16 @@ public class Matrix {
      */
     private static Predicate<Respondent> selectPredicate(String column, int value) {
         return switch (value) {
-            case 2, 7 -> makePredicate(column, value);
-            case 3, 5 -> makePredicate3(column, value);
+            case 2, 5 -> makePredicate(column, value);
+            case 1, 3 -> makePredicate3(column, value);
             default -> throw new IllegalArgumentException();
         };
     }
 
     private static Predicate<PulseRatedResponse> selectPredicate(int value) {
         return switch (value) {
-            case 2, 7 -> makePredicate(value);
-            case 3, 5 -> makePredicate3(value);
+            case 2, 5 -> makePredicate(value);
+            case 1, 3 -> makePredicate3(value);
             default -> throw new IllegalArgumentException();
         };
     }
